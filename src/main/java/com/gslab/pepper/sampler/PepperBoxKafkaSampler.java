@@ -123,7 +123,7 @@ public class PepperBoxKafkaSampler extends AbstractJavaSamplerClient {
         });
 
 
-        String sslEnabled = context.getParameter(ProducerKeys.SSL_ENABLED);
+        /*String sslEnabled = context.getParameter(ProducerKeys.SSL_ENABLED);
 
         if (sslEnabled != null && sslEnabled.equals(ProducerKeys.FLAG_YES)) {
 
@@ -132,7 +132,7 @@ public class PepperBoxKafkaSampler extends AbstractJavaSamplerClient {
             props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, context.getParameter(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG));
             props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, context.getParameter(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG));
             props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, context.getParameter(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG));
-        }
+        }*/
 
         String kerberosEnabled = context.getParameter(ProducerKeys.KERBEROS_ENABLED);
         if (kerberosEnabled != null && kerberosEnabled.equals(ProducerKeys.FLAG_YES)) {
@@ -164,17 +164,23 @@ public class PepperBoxKafkaSampler extends AbstractJavaSamplerClient {
         SampleResult sampleResult = new SampleResult();
         sampleResult.sampleStart();
         Object message_val = JMeterContextService.getContext().getVariables().getObject(msg_val_placeHolder);
+        
         ProducerRecord<String, Object> producerRecord;
         try {
             if (key_message_flag) {
-                Object message_key = JMeterContextService.getContext().getVariables().getObject(msg_key_placeHolder);
+            	Object message_key = JMeterContextService.getContext().getVariables().getObject(msg_key_placeHolder);
                 producerRecord = new ProducerRecord<String, Object>(topic, message_key.toString(), message_val);
+                sampleResult.setResponseData(message_key.toString(), StandardCharsets.UTF_8.name());
+                sampleResult.setResponseMessage(message_key.toString());
             } else {
                 producerRecord = new ProducerRecord<String, Object>(topic, message_val);
+                sampleResult.setResponseData(message_val.toString(), StandardCharsets.UTF_8.name());
+                sampleResult.setResponseMessage(message_val.toString());
             }
             producer.send(producerRecord);
-            sampleResult.setResponseData(message_val.toString(), StandardCharsets.UTF_8.name());
+            
             sampleResult.setSuccessful(true);
+            sampleResult.setResponseCodeOK();
             sampleResult.sampleEnd();
 
         } catch (Exception e) {
